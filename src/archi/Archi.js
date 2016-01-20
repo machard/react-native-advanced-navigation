@@ -55,7 +55,7 @@ export default class Archi extends Component {
         }}
         style={style.menuContainer}
         transitionValues={(progress) => ({
-          opacity: progress === 1 ? 1 : 0
+          opacity: (this.state.enableMenuGestures && progress === 1) ? 1 : 0
         })}
       >
         <MenuBar />
