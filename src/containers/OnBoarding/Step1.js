@@ -61,7 +61,7 @@ export default class OnBoardingStep1 extends Component {
               {routes: [bindingexample], name:'Binding Example'},
               {routes: [biglist], name:'Big Growing List'}
             ],
-            initialTab: 0,
+            initialTab: nextpagestep1,
             withBar: this.context.menubar
           }));
         }}

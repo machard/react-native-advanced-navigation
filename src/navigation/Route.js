@@ -33,9 +33,13 @@ export default class Route {
     return this.SceneConfig || Navigator.SceneConfigs.PushFromRight;
   }
 
+  scene() {
+    return this._scene;
+  }
+
   renderScene(opts) {
     return (<SceneWrapper {...opts} key={this.id}>
-      <this.SceneComponent {...this.props} />
+      <this.SceneComponent {...this.props} ref={(scene) => this._scene = scene} />
     </SceneWrapper>);
   }
 }

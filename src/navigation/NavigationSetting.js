@@ -1,4 +1,4 @@
-import React, {View, Component} from 'react-native';
+import React, {View, Component, InteractionManager} from 'react-native';
 import EventEmitter from 'EventEmitter';
 import _ from 'lodash';
 
@@ -18,6 +18,7 @@ const propTypes = {
   onFocus: React.PropTypes.func,
   onWillBlur: React.PropTypes.func,
   onWillFocus: React.PropTypes.func,
+  updateOnWillFocus: React.PropTypes.bool,
   waitForFocus: React.PropTypes.bool,
   style: View.propTypes.style
 };
@@ -38,6 +39,7 @@ export default class NavigationSetting extends Component {
     onFocus: () => {},
     onWillBlur: () => {},
     onWillFocus: () => {},
+    updateOnWillFocus: false,
     waitForFocus: false
   };
 
@@ -56,18 +58,36 @@ export default class NavigationSetting extends Component {
 
     this.listeners = [
       _.last(this.context.onFocusRegistrations)(() => {
+        this.isFocused = true;
         this.setState({isFocused: true, display: true});
         this.props.onFocus();
       }),
       _.last(this.context.onWillFocusRegistrations)(() => {
-        this.setState({isFocused: false});
+        this.isFocused = false;
         this.props.onWillFocus();
+
+        if (!this.props.updateOnWillFocus)
+          return this.setState({isFocused: false});
+
+        this.setState({isFocused: true});
+
+        InteractionManager.runAfterInteractions(() => {
+          requestAnimationFrame(() => {
+            if (!this.mounted)
+              return;
+
+            this.setState({isFocused: this.isFocused});
+          });
+        });
+
       }),
       _.last(this.context.onBlurRegistrations)(() => {
+        this.isFocused = false;
         this.setState({isFocused: false});
         this.props.onBlur();
       }),
       _.last(this.context.onWillBlurRegistrations)(() => {
+        this.isFocused = false;
         this.setState({isFocused: false});
         this.props.onWillBlur();
       })
@@ -78,11 +98,16 @@ export default class NavigationSetting extends Component {
     this.updateNavigationChannel(this.props);
   }
 
+  componentDidMount() {
+    this.mounted = true;
+  }
+
   componentWillReceiveProps(nextProps) {
     this.updateNavigationChannel(nextProps);
   }
 
   componentWillUnmount() {
+    this.mounted = false;
     _.each(this.listeners, l => l.remove());
     this.NSEListener.remove();
     this.channel.reset();

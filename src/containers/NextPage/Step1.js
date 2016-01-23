@@ -57,8 +57,8 @@ export default class Step1 extends Component {
       <Button
         label="Go to BigList row #1"
         onPress={() => {
-          _.last(this.context.setTabStacks)(2, [biglist, new BigListDetailRoute({row: 1})]);
-          _.last(this.context.setTabs)(2);
+          _.last(this.context.setTabStacks)([biglist, new BigListDetailRoute({row: 1})]);
+          _.last(this.context.setTabs)(biglist);
         }}
         style={style.button}
       />

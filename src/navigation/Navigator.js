@@ -1,4 +1,5 @@
 import React, {Navigator, View, Component, InteractionManager} from 'react-native';
+import _ from 'lodash';
 
 // this is our custom wrapped Navigator component.
 // it doesnt do much :
@@ -53,10 +54,24 @@ export default class CustomNavigator extends Component {
   }
 
   componentDidMount() {
-    var old = this.refs.nav.immediatelyResetRouteStack;
+    var _immediatelyResetRouteStack = this.refs.nav.immediatelyResetRouteStack;
     this.refs.nav.immediatelyResetRouteStack = (stack) => {
-      old(stack);
+      var _navStack = this.refs.nav.getCurrentRoutes();
+      var same = _.every(stack, (route, i) =>
+        _navStack[i] && _navStack[i].constructor === route.constructor && _.isEqual(_navStack[i].props, route.props)
+      );
+      if (same)
+        return;
+
+      _immediatelyResetRouteStack(stack);
       this.forceEventsForRoute(stack[stack.length - 1]);
+    };
+
+    var _jumpTo = this.refs.nav.jumpTo;
+    this.refs.nav.jumpTo = (route) => {
+      if (this.refs.nav.getCurrentRoutes().indexOf(route) === this.refs.nav.state.presentedIndex)
+        return;
+      _jumpTo(route);
     };
 
     this.l1 = this.refs.nav.navigationContext.addListener('willfocus', (e) => {

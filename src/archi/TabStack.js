@@ -96,9 +96,12 @@ class TabRoute extends Route {
 
 export default class TabStack extends Component {
   static propTypes = {
+    extraActions: React.PropTypes.array,
     initialStack: React.PropTypes.array.isRequired,
-    initialTab: React.PropTypes.number,
-    withBar: React.PropTypes.object.isRequired
+    initialTab: React.PropTypes.object,
+    onFocus: React.PropTypes.func,
+    onWillFocus: React.PropTypes.func,
+    withBar: React.PropTypes.object
   };
 
   static contextTypes = {
@@ -123,29 +126,48 @@ export default class TabStack extends Component {
   }
 
   componentWillMount() {
-    this.stack = _.map(this.props.initialStack, (route) => new TabRoute({
+    this.initialStack = [...this.props.initialStack];
+    this.stack = _.map(this.initialStack, (route) => new TabRoute({
       stack: route.routes
     }, route.name, new EventEmitter()));
-    this.initialTab = this.props.initialTab || 0;
+    this.initialTabIndex = this.getTabFromRoute(this.props.initialTab);
   }
 
-  setTab(tab) {
+  getTabFromRoute(route) {
+    if (!route)
+      return 0;
+
+    return _.findIndex(this.initialStack, ({routes}) => routes[0] === route);
+  }
+
+  setTab(tabFirstRoute) {
+    var tab = this.getTabFromRoute(tabFirstRoute);
     this._nav.jumpTo(this.stack[tab]);
   }
 
-  setTabStack(tab, stack) {
+  setTabStack(stack) {
+    var tab = this.getTabFromRoute(stack[0]);
     this.stack[tab].emit('resetStack', stack);
   }
 
   render() {
     return (
-      <Navigator
-        backgroundStyle={style.container}
-        initialRoute={this.stack[this.initialTab]}
-        initialRouteStack={this.stack}
-        navigationBar={<BarProxy bar={this.props.withBar} />}
-        ref={(navigator) => this._nav = navigator && navigator.navigator()}
-      />
+      <NavigationSetting
+        onFocus={this.props.onFocus}
+        onWillFocus={this.props.onWillFocus}
+        style={style.container}
+      >
+        <Navigator
+          backgroundStyle={style.container}
+          initialRoute={this.stack[this.initialTabIndex]}
+          initialRouteStack={this.stack}
+          navigationBar={this.props.withBar && <BarProxy
+            bar={this.props.withBar}
+            extraActions={this.props.extraActions}
+          />}
+          ref={(navigator) => this._nav = navigator && navigator.navigator()}
+        />
+      </NavigationSetting>
     );
   }
 
