@@ -66,6 +66,19 @@ export default class List extends Component {
     </TouchableOpacity>);
   }
 
+  onFocus() {
+    var NB_ITEMS_IN_SCREEN = 12;
+    // workaround blank lines...
+    if (this.refs.listView && this.state.ds.getRowCount() < NB_ITEMS_IN_SCREEN)
+      this.setState({nb: this.state.nb + 1});
+    else if (this.refs.listView) {
+      let listViewScrollView = this.refs.listView.getScrollResponder();
+      listViewScrollView.scrollTo(this.refs.listView.scrollProperties.offset - 1);
+      listViewScrollView.scrollTo(this.refs.listView.scrollProperties.offset + 1);
+    }
+
+  }
+
   render() {
     var ns = {
       titleLabel: 'BigList',
@@ -85,6 +98,7 @@ export default class List extends Component {
 
     return (<NavigationSetting
       {...ns}
+      onFocus={() => this.onFocus()}
       waitForFocus
     >
       <Text>{this.state.rows} rows. Notice how the rendering is suspended
